@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanted Poster - Preview Mode</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+
+    <!-- HTML to Image Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- LAYOUT & BASICS --- */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #222;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- LEFT SIDE: THE FORM --- */
+        .controls {
+            width: 320px;
+            background-color: #1a1a1a;
+            color: #ddd;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .controls h2 {
+            margin: 0 0 10px 0;
+            color: #e6c288;
+            font-family: 'Rye', serif;
+            text-align: center;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .form-group input, 
+        .form-group textarea, 
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            background-color: #2b2b2b;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        /* Button Group */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            font-family: 'Rye', serif;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn-download {
+            background-color: #e6c288;
+            color: #1a1a1a;
+        }
+        .btn-download:hover { background-color: #fff; }
+
+        .btn-preview {
+            background-color: #444;
+            color: #fff;
+        }
+        .btn-preview:hover { background-color: #666; }
+
+        /* --- RIGHT SIDE: PREVIEW --- */
+        .preview-area {
+            flex-grow: 1;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            overflow: auto;
+        }
+
+        /* --- THE POSTER --- */
+        .poster {
+            width: 580px; 
+            min-height: 820px;
+            padding: 40px 50px;
+            box-sizing: border-box;
+            position: relative;
+            text-align: center;
+            color: #1a1a1a;
+            box-shadow: 0 0 40px #000;
+            background-color: #f7e7ce;
+            background-image: radial-gradient(circle at center, #fff8e8 20%, #e8d0a9 70%, #8a6240 95%, #3e2b1f 100%);
+        }
+
+        #out-top-alert {
+            font-family: 'Rye', serif;
+            font-size: 26px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .main-title {
+            font-family: 'Rye', serif;
+            font-size: 100px;
+            margin: 0;
+            line-height: 0.9;
+            text-transform: uppercase;
+            color: #0d0d0d;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.4);
+            border-bottom: 5px solid #1a1a1a;
+            border-top: 5px solid #1a1a1a;
+            padding: 10px 0;
+            margin-bottom: 30px;
+            transform: scaleY(1.1);
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .image-wrapper {
+            width: 320px;
+            height: 320px;
+            overflow: hidden;
+            border: 8px solid #0d0d0d;
+            background-color: #000;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #out-alias {
+            font-family: 'Rye', serif;
+            font-size: 46px;
+            margin: 10px 0 15px 0;
+            text-transform: uppercase;
+            color: #0d0d0d;
+            letter-spacing: 2px;
+        }
+
+        #out-crimes {
+            font-family: 'Roboto Slab', serif;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin: 0 auto 25px auto;
+            width: 95%;
+            color: #222;
+        }
+
+        .desc-banner {
+            background-color: #222;
+            color: #f0f0f0;
+            font-family: 'Rye', serif;
+            font-size: 28px;
+            padding: 8px 40px;
+            margin: 0 auto 20px auto;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            clip-path: polygon(
+                0% 5%, 5% 0%, 15% 5%, 25% 0%, 35% 5%, 45% 0%, 55% 5%, 65% 0%, 75% 5%, 85% 0%, 95% 5%, 100% 0%, 
+                100% 95%, 95% 100%, 85% 95%, 75% 100%, 65% 95%, 55% 100%, 45% 95%, 35% 100%, 25% 95%, 15% 100%, 5% 95%, 0% 100%
+            );
+            transform: rotate(-1deg);
+            width: 80%;
+        }
+
+        .stats-list {
+            font-family: 'Roboto Slab', serif;
+            font-size: 15px;
+            color: #000;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .stats-list span { font-weight: normal; }
+
+        .remarks-section {
+            font-family: 'Roboto Slab', serif;
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 1.4;
+            color: #222;
+            border-top: 2px dashed #8a6240;
+            padding-top: 15px;
+            margin-top: 10px;
+        }
+
+        .contact-info {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-family: sans-serif;
+            font-size: 10px;
+            color: #444;
+            font-weight: bold;
+        }
+
+        /* --- POPUP MODAL STYLES --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* The Image inside the Modal */
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            border: 2px solid #e6c288;
+            box-shadow: 0 0 30px rgba(230, 194, 136, 0.3);
+            object-fit: contain;
+        }
+
+        /* The Close Button (X) */
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 50px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 2001;
+            font-family: sans-serif;
+            line-height: 1;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #e6c288;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Loading Text */
+        .loading-text {
+            color: #fff;
+            font-family: 'Rye', serif;
+            font-size: 24px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Hidden unless generating */
+        }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow: auto; }
+            .controls { width: 100%; height: auto; }
+            .poster { transform: scale(0.6); transform-origin: top center; margin-bottom: -300px; }
+            .modal-content { width: 100%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL -->
+    <div class="controls">
+        <h2>Wanted Poster Maker</h2>
+        
+        <div class="form-group">
+            <label>Upload Suspect Photo</label>
+            <input type="file" id="inp-img" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>Photo Shape</label>
+            <select id="sel-shape">
+                <option value="50%">Circle (Match Photo)</option>
+                <option value="0px">Rectangle</option>
+                <option value="10px">Rounded Square</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Top Alert</label>
+            <input type="text" id="inp-alert" value="ATTENTION CITIZENS!">
+        </div>
+
+        <div class="form-group">
+            <label>Name / Alias</label>
+            <input type="text" id="inp-alias" value="&quot;HACKTTACKER&quot;">
+        </div>
+
+        <div class="form-group">
+            <label>Crimes Paragraph</label>
+            <textarea id="inp-crimes" rows="4">Breaking into computer systems, theft of confidential information, disclosure of stolen confidential information, hijacking victims' email accounts, and defacing internet websites.</textarea>
+        </div>
+
+        <hr style="border-color:#444; width:100%;">
+
+        <div class="form-group"><label>Date of Birth</label><input type="text" id="inp-dob" value="January 1, 2001"></div>
+        <div class="form-group"><label>Place of Birth</label><input type="text" id="inp-pob" value="Ozamis City"></div>
+        <div class="form-group"><label>Height</label><input type="text" id="inp-height" value="5'3 ft"></div>
+        <div class="form-group"><label>Weight</label><input type="text" id="inp-weight" value="162 kg"></div>
+        <div class="form-group"><label>Sex</label><input type="text" id="inp-sex" value="Female"></div>
+        <div class="form-group"><label>Occupation</label><input type="text" id="inp-occ" value="Unknown"></div>
+        <div class="form-group"><label>Scars/Marks</label><input type="text" id="inp-scars" value="None"></div>
+
+        <div class="form-group">
+            <label>Remarks</label>
+            <textarea id="inp-remarks" rows="4">Individual may be age 12-60, male or female, unknown background, with varying technological skill levels.</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Contact Info (Bottom Right)</label>
+            <input type="text" id="inp-contact" value="Please contact FBI hotline: 1234-456-6799-678">
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="btn-group">
+            <button class="btn btn-preview" onclick="openPreview()">👁 View Preview</button>
+            <button class="btn btn-download" onclick="downloadImage()">⬇ Download</button>
+        </div>
+    </div>
+
+    <!-- POSTER DOM AREA -->
+    <div class="preview-area">
+        <div class="poster" id="poster-node">
+            
+            <div id="out-top-alert">ATTENTION CITIZENS!</div>
+            
+            <h1 class="main-title">WANTED</h1>
+
+            <div class="image-container">
+                <div class="image-wrapper" id="img-wrapper">
+                    <img id="out-img" src="https://img.freepik.com/premium-photo/hacker-hoodie-dark-theme_950002-19816.jpg" alt="Suspect">
+                </div>
+            </div>
+
+            <h2 id="out-alias">"HACKTTACKER"</h2>
+
+            <div id="out-crimes">
+                Breaking into computer systems, theft of confidential information, disclosure of stolen confidential information, hijacking victims' email accounts, and defacing internet websites.
+            </div>
+
+            <div class="desc-banner">DESCRIPTION</div>
+
+            <div class="stats-list">
+                <div>Date of Birth Used: <span id="out-dob">January 1, 2001</span></div>
+                <div>Place of Birth: <span id="out-pob">Ozamis City</span></div>
+                <div>Height: <span id="out-height">5'3 ft</span></div>
+                <div>Weight: <span id="out-weight">162 kg</span></div>
+                <div>Sex: <span id="out-sex">Female</span></div>
+                <div>Occupation: <span id="out-occ">Unknown</span></div>
+                <div>Scars/Marks: <span id="out-scars">None</span></div>
+            </div>
+
+            <div class="remarks-section">
+                <strong>Remarks:</strong> <span id="out-remarks">Individual may be age 12-60, male or female, unknown background, with varying technological skill levels, may be internal or external to the organization.</span>
+            </div>
+
+            <div class="contact-info" id="out-contact">
+                Please contact FBI hotline: 1234-456-6799-678
+            </div>
+
+        </div>
+    </div>
+
+    <!-- THE PREVIEW MODAL -->
+    <div id="myModal" class="modal">
+        <!-- Close Button -->
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        
+        <!-- Loading Text -->
+        <div id="loadingMsg" class="loading-text">Generating Preview...</div>
+
+        <!-- Generated Image goes here -->
+        <img class="modal-content" id="img01">
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // 1. Text Binding Helper
+        function bind(inputId, outputId) {
+            const elIn = document.getElementById(inputId);
+            const elOut = document.getElementById(outputId);
+            if(elIn && elOut) {
+                elIn.addEventListener('input', () => elOut.innerText = elIn.value);
+            }
+        }
+
+        // Bind all text fields
+        const map = {
+            'inp-alert': 'out-top-alert',
+            'inp-alias': 'out-alias',
+            'inp-crimes': 'out-crimes',
+            'inp-dob': 'out-dob',
+            'inp-pob': 'out-pob',
+            'inp-height': 'out-height',
+            'inp-weight': 'out-weight',
+            'inp-sex': 'out-sex',
+            'inp-occ': 'out-occ',
+            'inp-scars': 'out-scars',
+            'inp-remarks': 'out-remarks',
+            'inp-contact': 'out-contact'
+        };
+
+        for (const [key, val] of Object.entries(map)) {
+            bind(key, val);
+        }
+
+        // 2. Image Upload
+        document.getElementById('inp-img').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => document.getElementById('out-img').src = evt.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 3. Shape Changer
+        document.getElementById('sel-shape').addEventListener('change', function() {
+            document.getElementById('img-wrapper').style.borderRadius = this.value;
+        });
+
+        // 4. Download Function
+        function downloadImage() {
+            const poster = document.getElementById("poster-node");
+            
+            html2canvas(poster, {
+                scale: 2, 
+                backgroundColor: null,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'WANTED_POSTER.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+
+        // 5. PREVIEW MODAL LOGIC
+        const modal = document.getElementById("myModal");
+        const modalImg = document.getElementById("img01");
+        const loadingMsg = document.getElementById("loadingMsg");
+
+        function openPreview() {
+            const poster = document.getElementById("poster-node");
+            
+            // Show modal background immediately
+            modal.style.display = "flex";
+            loadingMsg.style.display = "block";
+            modalImg.style.display = "none";
+
+            // Generate image
+            html2canvas(poster, {
+                scale: 1.5, // slightly lower scale for preview speed
+                backgroundColor: null,
+                useCORS: true
+            }).then(canvas => {
+                loadingMsg.style.display = "none";
+                modalImg.src = canvas.toDataURL("image/png");
+                modalImg.style.display = "block";
+            });
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            modalImg.src = ""; // Clear memory
+        }
+
+        // Close when clicking outside image
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
